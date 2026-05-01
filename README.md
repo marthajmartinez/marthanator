@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom CO₂ Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #0d3b38;
+    --teal-mid: #1a6b63;
+    --teal-bright: #2a9d8f;
+    --teal-light: #52c4b5;
+    --teal-pale: #a8e6df;
+    --mint-mist: #e8f8f5;
+    --sky-blue: #4fc3c3;
+    --leaf-green: #57cc99;
+    --amber: #e9c46a;
+    --coral: #e76f51;
+    --danger: #c1121f;
+    --white: #ffffff;
+    --glass: rgba(255,255,255,0.72);
+    --glass-border: rgba(255,255,255,0.5);
+    --shadow: 0 8px 32px rgba(13,59,56,0.12);
+    --shadow-lg: 0 20px 60px rgba(13,59,56,0.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(135deg, #c8f0ea 0%, #b2e4f5 40%, #d4f0e8 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Animated background blobs */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    z-index: 0;
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+  body::before {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #57cc99, #2a9d8f);
+    top: -100px; left: -100px;
+  }
+  body::after {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, #4fc3c3, #1a6b63);
+    bottom: -150px; right: -150px;
+    animation-delay: -6s;
+  }
+
+  @keyframes drift {
+    0% { transform: translate(0,0) scale(1); }
+    100% { transform: translate(40px, 30px) scale(1.08); }
+  }
+
+  /* Floating particles */
+  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(42,157,143,0.18);
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) scale(1); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateY(-110vh) scale(0.5); opacity: 0; }
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 3rem;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeDown 0.7s ease both;
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.4rem;
+    animation: breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    color: var(--teal-deep);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+  }
+  h1 span { color: var(--teal-bright); font-style: italic; }
+
+  .subtitle {
+    color: var(--teal-mid);
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 28px;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 520px;
+    padding: 2rem 1.75rem;
+    animation: fadeUp 0.7s 0.15s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal-bright);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--teal-pale), transparent);
+  }
+
+  /* INPUTS */
+  .input-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .input-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.45rem;
+  }
+
+  .input-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--teal-deep);
+  }
+  .input-name .var {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    color: var(--teal-bright);
+    font-size: 1.05rem;
+  }
+
+  .input-unit {
+    font-size: 0.75rem;
+    color: var(--teal-mid);
+    opacity: 0.8;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  input[type="number"], input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .num-input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 2px solid rgba(42,157,143,0.3);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.7);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--teal-deep);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .num-input:focus {
+    border-color: var(--teal-bright);
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 0 0 4px rgba(42,157,143,0.12);
+  }
+  .num-input::placeholder { color: rgba(13,59,56,0.3); }
+
+  /* Slider */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--teal-bright) var(--val, 30%), rgba(42,157,143,0.2) var(--val, 30%));
+    cursor: pointer;
+    outline: none;
+    border: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--teal-bright);
+    box-shadow: 0 2px 8px rgba(42,157,143,0.3);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--teal-bright);
+    box-shadow: 0 2px 8px rgba(42,157,143,0.3);
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--teal-mid);
+    min-width: 2.5rem;
+    text-align: right;
+  }
+
+  /* Assumptions box */
+  .assumptions {
+    background: rgba(42,157,143,0.08);
+    border: 1px solid rgba(42,157,143,0.2);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    margin: 1.25rem 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 1rem;
+  }
+  .assum-item {
+    font-size: 0.78rem;
+    color: var(--teal-mid);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .assum-item::before {
+    content: '·';
+    color: var(--teal-bright);
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  /* CALCULATE BUTTON */
+  .calc-btn {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--teal-bright), var(--teal-mid));
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 20px rgba(42,157,143,0.35);
+  }
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  }
+  .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(42,157,143,0.45); }
+  .calc-btn:active { transform: translateY(0); }
+  .calc-btn .btn-icon { margin-right: 0.5rem; }
+
+  /* RESULTS */
+  .results {
+    margin-top: 1.5rem;
+    animation: fadeUp 0.5s ease both;
+    display: none;
+  }
+  .results.visible { display: block; }
+
+  .co2-display {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s, border-color 0.4s;
+    border: 2px solid transparent;
+  }
+  .co2-display::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    border-radius: inherit;
+  }
+
+  .co2-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3rem, 12vw, 4.5rem);
+    line-height: 1;
+    margin-bottom: 0.1rem;
+    transition: color 0.4s;
+  }
+  .co2-unit {
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    opacity: 0.8;
+  }
+  .co2-badge {
+    display: inline-block;
+    padding: 0.3rem 1.1rem;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: white;
+    transition: background 0.4s;
+  }
+
+  /* Status levels */
+  .level-good    { background: rgba(87,204,153,0.12); border-color: rgba(87,204,153,0.4); }
+  .level-good .co2-val, .level-good .co2-unit { color: #1a6b4a; }
+  .level-good .co2-badge { background: #57cc99; }
+
+  .level-elevated { background: rgba(233,196,106,0.12); border-color: rgba(233,196,106,0.4); }
+  .level-elevated .co2-val, .level-elevated .co2-unit { color: #8a6000; }
+  .level-elevated .co2-badge { background: #e9a825; }
+
+  .level-high    { background: rgba(231,111,81,0.12); border-color: rgba(231,111,81,0.4); }
+  .level-high .co2-val, .level-high .co2-unit { color: #8a2e10; }
+  .level-high .co2-badge { background: #e76f51; }
+
+  .level-hazardous { background: rgba(193,18,31,0.12); border-color: rgba(193,18,31,0.4); }
+  .level-hazardous .co2-val, .level-hazardous .co2-unit { color: #7a0010; }
+  .level-hazardous .co2-badge { background: #c1121f; }
+
+  /* Gauge bar */
+  .gauge-wrap {
+    margin-bottom: 1.25rem;
+  }
+  .gauge-bar {
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #57cc99 0%, #e9c46a 50%, #e76f51 75%, #c1121f 100%);
+    position: relative;
+    margin-bottom: 0.3rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .gauge-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--teal-deep);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: left 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--teal-mid);
+    opacity: 0.75;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+  .stat-box {
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(42,157,143,0.2);
+    border-radius: 14px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--teal-mid);
+    margin-bottom: 0.25rem;
+    opacity: 0.8;
+  }
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    color: var(--teal-deep);
+    line-height: 1;
+  }
+  .stat-sub {
+    font-size: 0.65rem;
+    color: var(--teal-mid);
+    opacity: 0.7;
+    margin-top: 0.15rem;
+  }
+
+  /* Recommendation */
+  .recommendation {
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(42,157,143,0.2);
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    font-size: 0.85rem;
+    color: var(--teal-deep);
+    line-height: 1.5;
+  }
+  .recommendation strong { color: var(--teal-bright); }
+
+  /* Formula footer */
+  .formula-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--teal-mid);
+    opacity: 0.7;
+    line-height: 1.6;
+    padding: 0 0.5rem;
+  }
+
+  /* Error */
+  .error-msg {
+    background: rgba(193,18,31,0.08);
+    border: 1px solid rgba(193,18,31,0.25);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: #7a0010;
+    font-size: 0.88rem;
+    text-align: center;
+    margin-top: 1rem;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Footer credit */
+  footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--teal-mid);
+    opacity: 0.6;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  @media (max-width: 400px) {
+    .card { padding: 1.5rem 1.25rem; }
+    .assumptions { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="wrapper">
+  <header>
+    <span class="logo-icon">🌿</span>
+    <h1>Classroom <span>CO₂</span> Calculator</h1>
+    <p class="subtitle">Steady-State Mass Balance Model</p>
+  </header>
+
+  <div class="card">
+    <div class="section-label">Input Variables</div>
+
+    <!-- Q -->
+    <div class="input-group">
+      <div class="input-label">
+        <span class="input-name"><span class="var">Q</span> — Air Exchange Rate</span>
+        <span class="input-unit">m³ fresh air / hr</span>
+      </div>
+      <div class="input-wrap">
+        <input class="num-input" type="number" id="Q" value="2180" min="1" placeholder="e.g. 2180">
+      </div>
+      <div class="slider-row">
+        <input type="range" id="Q-slider" min="100" max="8000" value="2180" step="10">
+        <span class="slider-val" id="Q-display">2180</span>
+      </div>
+    </div>
+
+    <!-- V -->
+    <div class="input-group">
+      <div class="input-label">
+        <span class="input-name"><span class="var">V</span> — Classroom Volume</span>
+        <span class="input-unit">m³</span>
+      </div>
+      <div class="input-wrap">
+        <input class="num-input" type="number" id="V" value="545" min="1" placeholder="e.g. 545">
+      </div>
+      <div class="slider-row">
+        <input type="range" id="V-slider" min="50" max="2000" value="545" step="5">
+        <span class="slider-val" id="V-display">545</span>
+      </div>
+    </div>
+
+    <!-- Occupancy -->
+    <div class="input-group">
+      <div class="input-label">
+        <span class="input-name">Room Occupancy</span>
+        <span class="input-unit">people</span>
+      </div>
+      <div class="input-wrap">
+        <input class="num-input" type="number" id="occ" value="30" min="1" max="300" placeholder="e.g. 30">
+      </div>
+      <div class="slider-row">
+        <input type="range" id="occ-slider" min="1" max="150" value="30" step="1">
+        <span class="slider-val" id="occ-display">30</span>
+      </div>
+    </div>
+
+    <!-- Assumptions -->
+    <div class="assumptions">
+      <div class="assum-item">12 breaths/min</div>
+      <div class="assum-item">0.45 L/exhale</div>
+      <div class="assum-item">4.5% CO₂ exhaled</div>
+      <div class="assum-item">420 ppm outdoor</div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">
+      <span class="btn-icon">🔬</span> Calculate Indoor CO₂
+    </button>
+
+    <div class="error-msg" id="error-msg">⚠️ Please enter valid positive numbers for all fields.</div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+      <div class="section-label" style="margin-top:1rem;">Results</div>
+
+      <div class="co2-display" id="co2-display">
+        <div class="co2-val" id="co2-val">—</div>
+        <div class="co2-unit">PPM — Indoor CO₂ Concentration</div>
+        <div class="co2-badge" id="co2-badge">—</div>
+      </div>
+
+      <div class="gauge-wrap">
+        <div class="gauge-bar">
+          <div class="gauge-marker" id="gauge-marker" style="left: 0%"></div>
+        </div>
+        <div class="gauge-labels">
+          <span>400</span><span>Good &lt;1000</span><span>Elevated</span><span>High</span><span>2500+ ppm</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">ACH</div>
+          <div class="stat-value" id="stat-ach">—</div>
+          <div class="stat-sub">air changes/hr</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Emission Rate</div>
+          <div class="stat-value" id="stat-e">—</div>
+          <div class="stat-sub">ppm·m³/hr</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">ΔCO₂ Above</div>
+          <div class="stat-value" id="stat-delta">—</div>
+          <div class="stat-sub">ppm over outdoor</div>
+        </div>
+      </div>
+
+      <div class="recommendation" id="recommendation"></div>
+    </div>
+  </div>
+
+  <div class="formula-footer">
+    <strong>Formula:</strong> C<sub>indoor</sub> = C<sub>outdoor</sub> + (E / Q) × 10⁶<br>
+    E = occupants × 12 × 0.45 × 60 × 0.045 / 1000 &nbsp;(m³ CO₂/hr)<br>
+    Based on ASHRAE Steady-State Mass Balance · Outdoor CO₂ = 420 ppm
+  </div>
+
+  <footer>Built for educators · Based on Steady-State Mass Balance Excel model</footer>
+</div>
+
+<script>
+  // ─── Floating particles ───────────────────────────────────────────
+  (function spawnParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+      const el = document.createElement('div');
+      el.className = 'particle';
+      const size = Math.random() * 14 + 4;
+      el.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        bottom:-${size}px;
+        animation-duration:${Math.random()*14+8}s;
+        animation-delay:${Math.random()*12}s;
+        opacity:${Math.random()*0.4+0.1};
+      `;
+      container.appendChild(el);
+    }
+  })();
+
+  // ─── Slider ↔ Input sync ──────────────────────────────────────────
+  function syncSlider(inputId, sliderId, displayId) {
+    const inp = document.getElementById(inputId);
+    const sld = document.getElementById(sliderId);
+    const dsp = document.getElementById(displayId);
+
+    function updateSliderBg() {
+      const min = +sld.min, max = +sld.max, val = +sld.value;
+      const pct = ((val - min) / (max - min)) * 100;
+      sld.style.setProperty('--val', pct + '%');
+    }
+
+    inp.addEventListener('input', () => {
+      sld.value = inp.value;
+      dsp.textContent = inp.value;
+      updateSliderBg();
+    });
+    sld.addEventListener('input', () => {
+      inp.value = sld.value;
+      dsp.textContent = sld.value;
+      updateSliderBg();
+    });
+    updateSliderBg();
+  }
+
+  syncSlider('Q', 'Q-slider', 'Q-display');
+  syncSlider('V', 'V-slider', 'V-display');
+  syncSlider('occ', 'occ-slider', 'occ-display');
+
+  // ─── Constants ───────────────────────────────────────────────────
+  const BREATHS = 12, L_EXHALE = 0.45, CO2_FRAC = 0.045, MIN_HR = 60, C_OUT = 420;
+
+  // ─── Calculate ───────────────────────────────────────────────────
+  function calculate() {
+    const Q   = parseFloat(document.getElementById('Q').value);
+    const V   = parseFloat(document.getElementById('V').value);
+    const occ = parseFloat(document.getElementById('occ').value);
+    const err = document.getElementById('error-msg');
+    const res = document.getElementById('results');
+
+    if (!Q || !V || !occ || Q <= 0 || V <= 0 || occ <= 0 || isNaN(Q) || isNaN(V) || isNaN(occ)) {
+      err.classList.add('visible');
+      res.classList.remove('visible');
+      return;
+    }
+    err.classList.remove('visible');
+
+    // Emission: m³ CO₂/hr
+    const E_m3 = (occ * BREATHS * L_EXHALE * MIN_HR * CO2_FRAC) / 1000;
+    // E in ppm·m³/hr for stats display
+    const E_ppm_m3 = E_m3 * 1e6;
+    const ACH = Q / V;
+    const C_indoor = C_OUT + (E_m3 / Q) * 1e6;
+    const delta = C_indoor - C_OUT;
+
+    // Level
+    let level, cls, rec;
+    if (C_indoor < 1000) {
+      level = 'Good'; cls = 'level-good';
+      rec = `<strong>✅ Air quality is good.</strong> CO₂ levels are within healthy range. Ventilation is adequate for the current occupancy.`;
+    } else if (C_indoor < 1500) {
+      level = 'Elevated'; cls = 'level-elevated';
+      rec = `<strong>⚠️ Slightly elevated.</strong> Consider increasing ventilation or reducing occupancy. Opening windows or increasing HVAC flow can help lower levels quickly.`;
+    } else if (C_indoor < 2000) {
+      level = 'High'; cls = 'level-high';
+      rec = `<strong>🔶 High CO₂ levels detected.</strong> Students may experience reduced focus and drowsiness. Increase ventilation immediately — open doors and windows or boost HVAC airflow.`;
+    } else {
+      level = 'Hazardous'; cls = 'level-hazardous';
+      rec = `<strong>🚨 Hazardous levels.</strong> CO₂ this high significantly impairs cognitive performance. Reduce occupancy, open all available ventilation, and consider evacuating until levels drop.`;
+    }
+
+    // Gauge position (400 ppm = 0%, 2500 ppm = 100%)
+    const gaugePos = Math.min(100, Math.max(0, ((C_indoor - 400) / 2100) * 100));
+
+    // Update DOM
+    const display = document.getElementById('co2-display');
+    display.className = 'co2-display ' + cls;
+    document.getElementById('co2-val').textContent = C_indoor.toFixed(1);
+    document.getElementById('co2-badge').textContent = level;
+    document.getElementById('stat-ach').textContent  = ACH.toFixed(2);
+    document.getElementById('stat-e').textContent    = E_ppm_m3.toFixed(0);
+    document.getElementById('stat-delta').textContent = '+' + delta.toFixed(1);
+    document.getElementById('gauge-marker').style.left = gaugePos + '%';
+    document.getElementById('recommendation').innerHTML = rec;
+
+    res.classList.add('visible');
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Allow Enter key to trigger calculation
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>
