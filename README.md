@@ -515,7 +515,7 @@
 
 <div class="wrapper">
   <header>
-    <span class="logo-icon">🌿</span>
+    <span class="logo-icon"></span> <!-- 🌿 -->
     <h1>Classroom <span>CO₂</span> Calculator</h1>
     <p class="subtitle">Steady-State Mass Balance Model</p>
   </header>
@@ -711,16 +711,16 @@
     let level, cls, rec;
     if (C_indoor < 1000) {
       level = 'Good'; cls = 'level-good';
-      rec = `<strong>✅ Air quality is good.</strong> CO₂ levels are within healthy range. Ventilation is adequate for the current occupancy.`;
+      rec = `<strong> Air quality is good.</strong> CO₂ levels are within healthy range. Ventilation is adequate for the current occupancy.`;
     } else if (C_indoor < 1500) {
       level = 'Elevated'; cls = 'level-elevated';
-      rec = `<strong>⚠️ Slightly elevated.</strong> Consider increasing ventilation or reducing occupancy. Opening windows or increasing HVAC flow can help lower levels quickly.`;
+      rec = `<strong> Slightly elevated.</strong> Consider increasing ventilation or reducing occupancy. Opening windows or increasing HVAC flow can help lower levels quickly.`;
     } else if (C_indoor < 2000) {
       level = 'High'; cls = 'level-high';
-      rec = `<strong>🔶 High CO₂ levels detected.</strong> Students may experience reduced focus and drowsiness. Increase ventilation immediately — open doors and windows or boost HVAC airflow.`;
+      rec = `<strong> High CO₂ levels detected.</strong> Students may experience reduced focus and drowsiness. Increase ventilation immediately — open doors and windows or boost HVAC airflow.`;
     } else {
       level = 'Hazardous'; cls = 'level-hazardous';
-      rec = `<strong>🚨 Hazardous levels.</strong> CO₂ this high significantly impairs cognitive performance. Reduce occupancy, open all available ventilation, and consider evacuating until levels drop.`;
+      rec = `<strong> Hazardous levels.</strong> CO₂ this high significantly impairs cognitive performance. Reduce occupancy, open all available ventilation, and consider evacuating until levels drop.`;
     }
 
     // Gauge position (400 ppm = 0%, 2500 ppm = 100%)
@@ -746,4 +746,3 @@
 </script>
 </body>
 </html>
-
