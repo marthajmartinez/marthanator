@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -503,9 +504,142 @@
     animation: fadeUp 0.7s 0.3s ease both;
   }
 
+  /* ── Q MODE TOGGLE ─────────────────────────────── */
+  .q-mode-tabs {
+    display: flex;
+    background: rgba(42,157,143,0.1);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 3px;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+  }
+  .q-tab {
+    flex: 1;
+    min-width: 0;
+    padding: 0.42rem 0.5rem;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--teal-mid);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .q-tab.active {
+    background: var(--white);
+    color: var(--teal-deep);
+    box-shadow: 0 2px 8px rgba(13,59,56,0.12);
+  }
+  .q-tab-label { display: block; font-size: 0.65rem; font-weight: 400; opacity: 0.75; margin-top: 1px; }
+
+  /* Don't-know toggle */
+  .dontknow-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .dontknow-toggle input[type="checkbox"] { display: none; }
+  .toggle-track {
+    width: 40px; height: 22px;
+    border-radius: 11px;
+    background: rgba(42,157,143,0.25);
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.25s;
+  }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: left 0.25s;
+  }
+  .dontknow-toggle input:checked + .toggle-track { background: var(--teal-bright); }
+  .dontknow-toggle input:checked + .toggle-track::after { left: 21px; }
+  .toggle-label { font-size: 0.83rem; color: var(--teal-mid); font-weight: 500; }
+
+  /* Don't-know panel */
+  .dontknow-panel {
+    display: none;
+    background: rgba(42,157,143,0.07);
+    border: 1.5px dashed rgba(42,157,143,0.35);
+    border-radius: 16px;
+    padding: 1rem 1rem 0.85rem;
+    margin-bottom: 0.9rem;
+    animation: fadeUp 0.3s ease both;
+  }
+  .dontknow-panel.visible { display: block; }
+
+  .dontknow-info {
+    font-size: 0.78rem;
+    color: var(--teal-mid);
+    margin-bottom: 0.7rem;
+    line-height: 1.5;
+  }
+  .dontknow-info strong { color: var(--teal-bright); }
+
+  /* Extra field needed for don't-know (floor area) */
+  .floor-field { margin-bottom: 0.6rem; }
+  .floor-field label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--teal-deep);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .floor-field .input-row { display: flex; gap: 0.5rem; align-items: center; }
+  .floor-field select {
+    padding: 0.55rem 0.6rem;
+    border: 2px solid rgba(42,157,143,0.3);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.8);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--teal-deep);
+    outline: none;
+    cursor: pointer;
+  }
+  .ashrae-result {
+    margin-top: 0.65rem;
+    background: rgba(87,204,153,0.12);
+    border: 1px solid rgba(87,204,153,0.4);
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8rem;
+    color: #1a6b4a;
+    display: none;
+  }
+  .ashrae-result.visible { display: block; }
+  .ashrae-result strong { font-size: 1rem; }
+
+  /* Q input panel (known Q) */
+  .q-known-panel { }
+  .q-known-panel.hidden { display: none; }
+
+  /* Converted Q note */
+  .q-converted {
+    font-size: 0.75rem;
+    color: var(--teal-mid);
+    margin-top: 0.3rem;
+    opacity: 0.8;
+    min-height: 1.1em;
+  }
+
   @media (max-width: 400px) {
     .card { padding: 1.5rem 1.25rem; }
     .assumptions { grid-template-columns: 1fr; }
+    .q-tab { font-size: 0.72rem; padding: 0.38rem 0.35rem; }
   }
 </style>
 </head>
@@ -525,16 +659,60 @@
 
     <!-- Q -->
     <div class="input-group">
-      <div class="input-label">
-        <span class="input-name"><span class="var">Q</span> — Air Exchange Rate</span>
-        <span class="input-unit">m³ fresh air / hr</span>
+      <div class="input-label" style="margin-bottom:0.6rem;">
+        <span class="input-name"><span class="var">Q</span> — Ventilation Rate</span>
       </div>
-      <div class="input-wrap">
-        <input class="num-input" type="number" id="Q" value="2180" min="1" placeholder="e.g. 2180">
+
+      <!-- Unit tabs -->
+      <div class="q-mode-tabs">
+        <button class="q-tab active" data-mode="m3hr" onclick="setQMode('m3hr')">
+          m³/hr<span class="q-tab-label">cubic meters/hour</span>
+        </button>
+        <button class="q-tab" data-mode="cfm" onclick="setQMode('cfm')">
+          CFM<span class="q-tab-label">cubic feet/min</span>
+        </button>
+        <button class="q-tab" data-mode="ach" onclick="setQMode('ach')">
+          ACH<span class="q-tab-label">air changes/hour</span>
+        </button>
       </div>
-      <div class="slider-row">
-        <input type="range" id="Q-slider" min="100" max="8000" value="2180" step="10">
-        <span class="slider-val" id="Q-display">2180</span>
+
+      <!-- Don't-know toggle -->
+      <label class="dontknow-toggle">
+        <input type="checkbox" id="dontknow-chk" onchange="toggleDontKnow()">
+        <span class="toggle-track"></span>
+        <span class="toggle-label">I don't know my ventilation rate — use ASHRAE default</span>
+      </label>
+
+      <!-- ASHRAE default panel -->
+      <div class="dontknow-panel" id="dontknow-panel">
+        <div class="dontknow-info">
+          ASHRAE 62.1 sets the minimum at <strong>15 CFM per person</strong> OR
+          <strong>0.15 CFM per ft²</strong> — whichever is greater.
+          Enter your floor area and the calculator picks the correct value automatically.
+        </div>
+        <div class="floor-field">
+          <label>Floor Area</label>
+          <div class="input-row">
+            <input class="num-input" type="number" id="floor-area" placeholder="e.g. 900" min="1" style="flex:1" oninput="updateAshrae()">
+            <select id="floor-unit" onchange="updateAshrae()">
+              <option value="ft2">ft²</option>
+              <option value="m2">m²</option>
+            </select>
+          </div>
+        </div>
+        <div class="ashrae-result" id="ashrae-result"></div>
+      </div>
+
+      <!-- Known-Q input -->
+      <div class="q-known-panel" id="q-known-panel">
+        <div class="input-wrap">
+          <input class="num-input" type="number" id="Q-raw" value="2180" min="1" placeholder="e.g. 2180" oninput="syncQSlider()">
+        </div>
+        <div class="slider-row">
+          <input type="range" id="Q-slider" min="100" max="8000" value="2180" step="10" oninput="syncQInput()">
+          <span class="slider-val" id="Q-display">2180</span>
+        </div>
+        <div class="q-converted" id="q-converted"></div>
       </div>
     </div>
 
@@ -633,79 +811,175 @@
 </div>
 
 <script>
-  // ─── Floating particles ───────────────────────────────────────────
+  // ─── Floating particles ──────────────────────────────────────────
   (function spawnParticles() {
     const container = document.getElementById('particles');
     for (let i = 0; i < 30; i++) {
       const el = document.createElement('div');
       el.className = 'particle';
       const size = Math.random() * 14 + 4;
-      el.style.cssText = `
-        width:${size}px; height:${size}px;
-        left:${Math.random()*100}%;
-        bottom:-${size}px;
-        animation-duration:${Math.random()*14+8}s;
-        animation-delay:${Math.random()*12}s;
-        opacity:${Math.random()*0.4+0.1};
-      `;
+      el.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;bottom:-${size}px;animation-duration:${Math.random()*14+8}s;animation-delay:${Math.random()*12}s;opacity:${Math.random()*0.4+0.1};`;
       container.appendChild(el);
     }
   })();
 
-  // ─── Slider ↔ Input sync ──────────────────────────────────────────
+  // ─── Slider sync helpers ─────────────────────────────────────────
+  function updateSliderBg(sld) {
+    const pct = ((+sld.value - +sld.min) / (+sld.max - +sld.min)) * 100;
+    sld.style.setProperty('--val', pct + '%');
+  }
   function syncSlider(inputId, sliderId, displayId) {
     const inp = document.getElementById(inputId);
     const sld = document.getElementById(sliderId);
     const dsp = document.getElementById(displayId);
-
-    function updateSliderBg() {
-      const min = +sld.min, max = +sld.max, val = +sld.value;
-      const pct = ((val - min) / (max - min)) * 100;
-      sld.style.setProperty('--val', pct + '%');
-    }
-
-    inp.addEventListener('input', () => {
-      sld.value = inp.value;
-      dsp.textContent = inp.value;
-      updateSliderBg();
-    });
-    sld.addEventListener('input', () => {
-      inp.value = sld.value;
-      dsp.textContent = sld.value;
-      updateSliderBg();
-    });
-    updateSliderBg();
+    inp.addEventListener('input', () => { sld.value = inp.value; dsp.textContent = inp.value; updateSliderBg(sld); });
+    sld.addEventListener('input', () => { inp.value = sld.value; dsp.textContent = sld.value; updateSliderBg(sld); });
+    updateSliderBg(sld);
   }
-
-  syncSlider('Q', 'Q-slider', 'Q-display');
   syncSlider('V', 'V-slider', 'V-display');
   syncSlider('occ', 'occ-slider', 'occ-display');
 
-  // ─── Constants ───────────────────────────────────────────────────
+  // ─── Q MODE STATE ────────────────────────────────────────────────
+  let qMode = 'm3hr'; // 'm3hr' | 'cfm' | 'ach'
+  const sliderCfg = {
+    m3hr: { min: 50,  max: 15000, step: 10,  def: 2180  },
+    cfm:  { min: 50,  max: 8800,  step: 5,   def: 1285  },
+    ach:  { min: 0.1, max: 20,    step: 0.1, def: 4     },
+  };
+
+  function setQMode(mode) {
+    qMode = mode;
+    // Update tab styles
+    document.querySelectorAll('.q-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    // Update slider range
+    const cfg = sliderCfg[mode];
+    const sld = document.getElementById('Q-slider');
+    sld.min = cfg.min; sld.max = cfg.max; sld.step = cfg.step;
+    // Set sensible default value if field is empty or first switch
+    const inp = document.getElementById('Q-raw');
+    inp.value = cfg.def;
+    sld.value = cfg.def;
+    document.getElementById('Q-display').textContent = cfg.def;
+    updateSliderBg(sld);
+    updateQConvertedNote();
+  }
+
+  function syncQSlider() {
+    const inp = document.getElementById('Q-raw');
+    const sld = document.getElementById('Q-slider');
+    sld.value = inp.value;
+    document.getElementById('Q-display').textContent = inp.value;
+    updateSliderBg(sld);
+    updateQConvertedNote();
+  }
+  function syncQInput() {
+    const sld = document.getElementById('Q-slider');
+    const inp = document.getElementById('Q-raw');
+    inp.value = sld.value;
+    document.getElementById('Q-display').textContent = sld.value;
+    updateSliderBg(sld);
+    updateQConvertedNote();
+  }
+
+  // Show equivalent in other units under the Q input
+  function updateQConvertedNote() {
+    const raw = parseFloat(document.getElementById('Q-raw').value);
+    if (!raw || isNaN(raw)) { document.getElementById('q-converted').textContent = ''; return; }
+    const q_m3hr = toM3Hr(raw, qMode);
+    const q_cfm  = q_m3hr / 0.028316847 / 60;
+    let parts = [];
+    if (qMode !== 'm3hr') parts.push(q_m3hr.toFixed(1) + ' m³/hr');
+    if (qMode !== 'cfm')  parts.push(q_cfm.toFixed(1) + ' CFM');
+    // ACH shown in results always
+    document.getElementById('q-converted').textContent = parts.length ? '≈ ' + parts.join('  ·  ') : '';
+  }
+
+  // Convert raw Q input → m³/hr (all calcs use m³/hr internally)
+  function toM3Hr(val, mode, V_m3) {
+    if (mode === 'm3hr') return val;
+    if (mode === 'cfm')  return val * 0.028316847 * 60; // CFM → m³/hr
+    if (mode === 'ach')  return val * (V_m3 || 1);      // ACH × Volume
+    return val;
+  }
+
+  // ─── DON'T-KNOW Q TOGGLE ────────────────────────────────────────
+  function toggleDontKnow() {
+    const checked = document.getElementById('dontknow-chk').checked;
+    document.getElementById('dontknow-panel').classList.toggle('visible', checked);
+    document.getElementById('q-known-panel').classList.toggle('hidden', checked);
+    if (checked) updateAshrae();
+  }
+
+  function updateAshrae() {
+    const area = parseFloat(document.getElementById('floor-area').value);
+    const unit = document.getElementById('floor-unit').value;
+    const occ  = parseFloat(document.getElementById('occ').value) || 1;
+    const el   = document.getElementById('ashrae-result');
+    if (!area || isNaN(area)) { el.classList.remove('visible'); return; }
+
+    // Convert area to ft² for ASHRAE calc
+    const area_ft2 = unit === 'm2' ? area * 10.7639 : area;
+
+    const cfm_per_person = 15 * occ;          // 15 CFM × occupants
+    const cfm_per_ft2    = 0.15 * area_ft2;   // 0.15 CFM × ft²
+    const Q_cfm = Math.max(cfm_per_person, cfm_per_ft2);
+    const Q_m3hr = Q_cfm * 0.028316847 * 60;
+    const winner = cfm_per_person >= cfm_per_ft2 ? '15 CFM/person' : '0.15 CFM/ft²';
+
+    el.innerHTML = `
+      <strong>${Q_cfm.toFixed(1)} CFM</strong> &nbsp;·&nbsp; ${Q_m3hr.toFixed(1)} m³/hr<br>
+      <span style="font-size:0.72rem;opacity:0.8">Governed by ${winner} rule · Used directly in calculation</span>`;
+    el.classList.add('visible');
+
+    // Store for calculate()
+    el.dataset.q_m3hr = Q_m3hr;
+  }
+
+  // Init slider bg on load
+  updateSliderBg(document.getElementById('Q-slider'));
+
+  // ─── Constants ──────────────────────────────────────────────────
   const BREATHS = 12, L_EXHALE = 0.45, CO2_FRAC = 0.045, MIN_HR = 60, C_OUT = 420;
 
-  // ─── Calculate ───────────────────────────────────────────────────
+  // ─── Calculate ──────────────────────────────────────────────────
   function calculate() {
-    const Q   = parseFloat(document.getElementById('Q').value);
-    const V   = parseFloat(document.getElementById('V').value);
-    const occ = parseFloat(document.getElementById('occ').value);
     const err = document.getElementById('error-msg');
     const res = document.getElementById('results');
+    const V   = parseFloat(document.getElementById('V').value);
+    const occ = parseFloat(document.getElementById('occ').value);
 
-    if (!Q || !V || !occ || Q <= 0 || V <= 0 || occ <= 0 || isNaN(Q) || isNaN(V) || isNaN(occ)) {
-      err.classList.add('visible');
-      res.classList.remove('visible');
-      return;
+    // Get Q in m³/hr
+    let Q_m3hr;
+    const dontknow = document.getElementById('dontknow-chk').checked;
+    if (dontknow) {
+      const ar = document.getElementById('ashrae-result');
+      Q_m3hr = parseFloat(ar.dataset.q_m3hr);
+      if (!Q_m3hr || isNaN(Q_m3hr)) {
+        err.textContent = 'Please enter a floor area to use the ASHRAE default.';
+        err.classList.add('visible'); res.classList.remove('visible'); return;
+      }
+    } else {
+      const raw = parseFloat(document.getElementById('Q-raw').value);
+      if (!raw || isNaN(raw) || raw <= 0) {
+        err.textContent = 'Please enter a valid ventilation rate Q.';
+        err.classList.add('visible'); res.classList.remove('visible'); return;
+      }
+      Q_m3hr = toM3Hr(raw, qMode, V);
+    }
+
+    if (!V || !occ || V <= 0 || occ <= 0 || isNaN(V) || isNaN(occ)) {
+      err.textContent = 'Please enter valid positive numbers for all fields.';
+      err.classList.add('visible'); res.classList.remove('visible'); return;
     }
     err.classList.remove('visible');
 
-    // Emission: m³ CO₂/hr
-    const E_m3 = (occ * BREATHS * L_EXHALE * MIN_HR * CO2_FRAC) / 1000;
-    // E in ppm·m³/hr for stats display
-    const E_ppm_m3 = E_m3 * 1e6;
-    const ACH = Q / V;
-    const C_indoor = C_OUT + (E_m3 / Q) * 1e6;
-    const delta = C_indoor - C_OUT;
+    // Core mass-balance calculation
+    const E_m3   = (occ * BREATHS * L_EXHALE * MIN_HR * CO2_FRAC) / 1000; // m³ CO₂/hr
+    const E_ppm  = E_m3 * 1e6;
+    const ACH    = Q_m3hr / V;
+    const Q_cfm  = Q_m3hr / (0.028316847 * 60);
+    const C_indoor = C_OUT + (E_m3 / Q_m3hr) * 1e6;
+    const delta    = C_indoor - C_OUT;
 
     // Level
     let level, cls, rec;
@@ -714,25 +988,22 @@
       rec = `<strong> Air quality is good.</strong> CO₂ levels are within healthy range. Ventilation is adequate for the current occupancy.`;
     } else if (C_indoor < 1500) {
       level = 'Elevated'; cls = 'level-elevated';
-      rec = `<strong> Slightly elevated.</strong> Consider increasing ventilation or reducing occupancy. Opening windows or increasing HVAC flow can help lower levels quickly.`;
+      rec = `<strong> Slightly elevated.</strong> Consider increasing ventilation or reducing occupancy. Opening windows or boosting HVAC flow will help.`;
     } else if (C_indoor < 2000) {
       level = 'High'; cls = 'level-high';
-      rec = `<strong> High CO₂ levels detected.</strong> Students may experience reduced focus and drowsiness. Increase ventilation immediately — open doors and windows or boost HVAC airflow.`;
+      rec = `<strong> High CO₂ levels.</strong> Students may feel drowsy and lose focus. Increase ventilation immediately — open doors, windows, or boost HVAC airflow.`;
     } else {
       level = 'Hazardous'; cls = 'level-hazardous';
-      rec = `<strong> Hazardous levels.</strong> CO₂ this high significantly impairs cognitive performance. Reduce occupancy, open all available ventilation, and consider evacuating until levels drop.`;
+      rec = `<strong> Hazardous levels.</strong> CO₂ this high significantly impairs cognitive performance. Reduce occupancy, maximize ventilation, and consider evacuating until levels drop.`;
     }
 
-    // Gauge position (400 ppm = 0%, 2500 ppm = 100%)
     const gaugePos = Math.min(100, Math.max(0, ((C_indoor - 400) / 2100) * 100));
 
-    // Update DOM
-    const display = document.getElementById('co2-display');
-    display.className = 'co2-display ' + cls;
-    document.getElementById('co2-val').textContent = C_indoor.toFixed(1);
+    document.getElementById('co2-display').className = 'co2-display ' + cls;
+    document.getElementById('co2-val').textContent   = C_indoor.toFixed(1);
     document.getElementById('co2-badge').textContent = level;
     document.getElementById('stat-ach').textContent  = ACH.toFixed(2);
-    document.getElementById('stat-e').textContent    = E_ppm_m3.toFixed(0);
+    document.getElementById('stat-e').textContent    = E_ppm.toFixed(0);
     document.getElementById('stat-delta').textContent = '+' + delta.toFixed(1);
     document.getElementById('gauge-marker').style.left = gaugePos + '%';
     document.getElementById('recommendation').innerHTML = rec;
@@ -741,7 +1012,6 @@
     res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Allow Enter key to trigger calculation
   document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
 </script>
 </body>
