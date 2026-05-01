@@ -754,10 +754,10 @@
     </div>
 
     <button class="calc-btn" onclick="calculate()">
-      <span class="btn-icon">🔬</span> Calculate Indoor CO₂
+      <span class="btn-icon"></span> Calculate Indoor CO₂
     </button>
 
-    <div class="error-msg" id="error-msg">⚠️ Please enter valid positive numbers for all fields.</div>
+    <div class="error-msg" id="error-msg"> Please enter valid positive numbers for all fields.</div>
 
     <!-- Results -->
     <div class="results" id="results">
